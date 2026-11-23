@@ -103,6 +103,11 @@ def run():
                 cols[m.group(1)] = i
         if len(cols) < 15:
             continue
+        # 同じファイルに「患者数」と「割合」のシートがある。見出しの下の行に「割合」「比率」があるシートは使わない
+        sub = " ".join(re.sub(r"\s", "", str(c or "")) for r in rows[hi + 1:hi + 3] for c in (r or []))
+        if ("割合" in sub or "比率" in sub or "構成比" in sub) and "患者数" not in sub:
+            oc.log("割合のシートは使いません")
+            continue
         # 見出しはMDCごとに「件数」「割合」の2列。見出しの位置の前後から、整数で1より大きい値が入っている列（＝件数）を選ぶ
         sample = [r for r in rows[hi + 1:hi + 300] if r and r[i_name]]
         def is_count(i):
@@ -114,15 +119,20 @@ def run():
                 if 0 <= j < len(h) and is_count(j):
                     cols[m] = j
                     break
+        # 1つの病院が「手術 無し」「手術 有り」の2行に分かれている（2行目は施設名が空欄）。2行を足し合わせる
+        key = None
         for r in rows[hi + 1:]:
-            if not r or not r[i_name]:
+            if not r:
                 continue
-            key = str(r[i_tsu]).strip() if i_tsu is not None else str(r[i_name]).strip()
-            names[key] = str(r[i_name]).strip()
+            if r[i_name]:
+                key = str(r[i_tsu]).strip() if i_tsu is not None else str(r[i_name]).strip()
+                names[key] = str(r[i_name]).strip()
+            elif key is None:
+                continue
             for m, i in cols.items():
-                v = oc.num(r[i])
+                v = oc.num(r[i]) if i < len(r) else None
                 if v is not None:
-                    counts[key][m] = v
+                    counts[key][m] = counts[key].get(m, 0) + v
     oc.check(len(counts) > 3000, "MDC別件数を読み取れた病院が少なすぎます(%d)" % len(counts))
     # 「件数（割合）」の表なので、割合の列を件数と取り違えていないか確かめる（割合なら最大でも100以下）
     tops = sorted((max(c.values()) for c in counts.values() if c), reverse=True)
