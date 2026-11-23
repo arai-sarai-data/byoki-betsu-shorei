@@ -103,6 +103,17 @@ def run():
                 cols[m.group(1)] = i
         if len(cols) < 15:
             continue
+        # 見出しはMDCごとに「件数」「割合」の2列。見出しの位置の前後から、整数で1より大きい値が入っている列（＝件数）を選ぶ
+        sample = [r for r in rows[hi + 1:hi + 300] if r and r[i_name]]
+        def is_count(i):
+            vals = [oc.num(r[i]) for r in sample if i < len(r)]
+            vals = [v for v in vals if v is not None]
+            return bool(vals) and max(vals) > 1 and all(float(v).is_integer() for v in vals)
+        for m, i in list(cols.items()):
+            for j in (i, i - 1, i + 1, i - 2):
+                if 0 <= j < len(h) and is_count(j):
+                    cols[m] = j
+                    break
         for r in rows[hi + 1:]:
             if not r or not r[i_name]:
                 continue
