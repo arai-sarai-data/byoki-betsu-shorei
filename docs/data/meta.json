@@ -1,0 +1,1 @@
+{"data_period":"令和６年度","stats":[{"label":"データのある病院","value":4391,"unit":"施設"},{"label":"病気の分野（MDC）","value":18,"unit":"分野"}],"sources":[{"name":"令和６年度DPC退院患者調査の結果報告","org":"厚生労働省","url":"https://www.mhlw.go.jp/stf/shingi2/newpage_00203.html","license":"公共データ利用規約","retrieved":"2026-11-24"}],"status":"ok","updated":"2026-11-24"}
